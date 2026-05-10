@@ -1,21 +1,27 @@
-# frontend/components/SecurityStatus.vue
 <template>
-  <div class="security-status">
-    <button @click="fetchStatus">Refresh Status</button>
-    <pre>{{ status }}</pre>
+  <div class="status">
+    <p>Current Security Status: <strong>{{ status }}</strong></p>
+    <ul>
+      <li v-for="event in events" :key="event.id">{{ event.timestamp }} - {{ event.message }}</li>
+    </ul>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-const status = ref('Loading...')
-const fetchStatus = async () => {
-  try {
-    const res = await $axios.get('http://localhost:8000/events')
-    status.value = JSON.stringify(res.data, null, 2)
-  } catch (e) {
-    status.value = 'Error fetching status'
-  }
-}
-fetchStatus()
+import { ref, onMounted } from 'vue'
+import { useSecurityStore } from '../store'
+
+const store = useSecurityStore()
+const status = ref('unknown')
+const events = ref([])
+
+onMounted(async () => {
+  await store.fetchStatus()
+  status.value = store.status
+  events.value = store.events
+})
 </script>
+
+<style scoped>
+.status { margin-top: 1rem; }
+</style>
