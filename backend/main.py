@@ -1,26 +1,19 @@
-"""
-FastAPI application entry point for the Mobile Security App backend.
+"""FastAPI application entry point for Mobile Security App backend.
 
-This module sets up the FastAPI app, includes routers, and configures
-middleware for logging and security.
+This module sets up the FastAPI app, includes routers, and configures middleware.
 """
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import security
-from .config import settings
 
-app = FastAPI(
-    title=settings.app_name,
-    description="Backend API for Mobile Security App",
-    version="0.1.0",
-)
+app = FastAPI(title="Mobile Security App Backend")
 
-# CORS configuration – allow all origins for demo purposes
+# Allow CORS for frontend development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],  # Vue dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,6 +22,6 @@ app.add_middleware(
 # Include routers
 app.include_router(security.router, prefix="/api/security", tags=["security"])
 
-@app.get("/health")
-async def health_check():
-    return {"status": "ok"}
+@app.get("/")
+async def root():
+    return {"message": "Welcome to Mobile Security App Backend"}

@@ -1,0 +1,8 @@
+# .gitignore for backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+secret.key

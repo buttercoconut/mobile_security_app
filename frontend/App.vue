@@ -1,6 +1,14 @@
+# frontend/App.vue
 <template>
-  <router-view />
+  <div id="app">
+    <h1>Mobile Security Dashboard</h1>
+    <SecurityStatus />
+  </div>
 </template>
-<script setup>
-// Root component
+
+<script>
+import SecurityStatus from './components/SecurityStatus.vue'
+export default {
+  components: { SecurityStatus }
+}
 </script>

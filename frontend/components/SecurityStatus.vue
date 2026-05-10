@@ -1,19 +1,21 @@
+# frontend/components/SecurityStatus.vue
 <template>
-  <div>
-    <h2>Security Status</h2>
-    <button @click="checkMalware">Check Malware</button>
-    <p v-if="malwareResult">Result: {{ malwareResult }}</p>
+  <div class="security-status">
+    <button @click="fetchStatus">Refresh Status</button>
+    <pre>{{ status }}</pre>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import api from '../services/api';
-
-const malwareResult = ref('');
-
-const checkMalware = async () => {
-  const res = await api.post('/api/security/malware-check', { data: 'sample' });
-  malwareResult.value = res.data.result;
-};
+import { ref } from 'vue'
+const status = ref('Loading...')
+const fetchStatus = async () => {
+  try {
+    const res = await $axios.get('http://localhost:8000/events')
+    status.value = JSON.stringify(res.data, null, 2)
+  } catch (e) {
+    status.value = 'Error fetching status'
+  }
+}
+fetchStatus()
 </script>

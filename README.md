@@ -1,41 +1,33 @@
-# Mobile Security App Backend
+# README.md
+# Mobile Security App
 
 ## Overview
-This repository contains a minimal FastAPI backend for a mobile security application. It demonstrates core security features such as data encryption/decryption, a naive malware check, and basic data models for users, security events, and vulnerabilities.
+This repository contains a minimal but functional mobile security backend (FastAPI) and frontend (Vue3) implementation. It demonstrates core security features such as data encryption, event logging, and a simple UI to view security events.
 
-## Directory Structure
-```
-backend/
-├─ Dockerfile
-├─ docker-compose.yml
-├─ main.py
-├─ config.py
-├─ models.py
-├─ security.py
-├─ routers/
-│  └─ security.py
-├─ requirements.txt
-```
+## Backend
+- **FastAPI** with in‑memory storage (replace with a DB for production).
+- Endpoints for user management, event logging, and encryption/decryption.
+- Uses **cryptography.Fernet** for symmetric encryption.
 
-## Running the Service
+## Frontend
+- **Vue3** + **Vite**.
+- Simple dashboard showing security events fetched from the backend.
+- Axios proxy configured to forward `/api` requests to the FastAPI server.
+
+## Running
 ```bash
-# Build and start the container
-docker compose up --build
+# Backend
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
 
-# The API will be available at http://localhost:8000
+# Frontend
+cd ../frontend
+npm install
+npm run dev
 ```
 
-## API Endpoints
-- `GET /health` – Health check
-- `POST /api/security/encrypt` – Encrypt data
-- `POST /api/security/decrypt` – Decrypt token
-- `POST /api/security/malware-check` – Check data for suspicious patterns
-
-## Notes
-- The encryption key is generated at runtime for demo purposes. In production, store it securely.
-- The malware check is intentionally simple and should be replaced with a proper scanning engine.
-- SQLite is used for simplicity; replace with PostgreSQL/MySQL for production.
-
----
-
-Happy hacking!
+## Security Notes
+- In production, store encryption keys securely (e.g., HSM, KMS).
+- Replace in‑memory storage with a persistent DB and add authentication.
+- Add rate limiting, input validation, and logging.

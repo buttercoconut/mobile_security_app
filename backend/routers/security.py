@@ -1,50 +1,48 @@
-"""
-FastAPI router for security related endpoints.
+"""FastAPI routers for security endpoints.
+
+Endpoints:
+- POST /api/security/encrypt: encrypt a string.
+- POST /api/security/decrypt: decrypt a token.
+- POST /api/security/scan: upload a file for malware scan.
+- GET /api/security/events: retrieve logged events.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from typing import List
+from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
 
-from ..security import encrypt_data, decrypt_data, simple_malware_check
-from ..models import User, SecurityEvent, Vulnerability
-from ..config import settings
+from ..models import SecurityEvent
+from ..security import encrypt_data, decrypt_data, scan_file, log_event, EVENT_LOG
 
 router = APIRouter()
 
-class EncryptRequest(BaseModel):
-    data: str
+@router.post("/encrypt")
+async def encrypt_endpoint(data: dict):
+    plain_text = data.get("text")
+    if not plain_text:
+        raise HTTPException(status_code=400, detail="'text' field required")
+    token = encrypt_data(plain_text)
+    log_event(user_id=1, event_type="ENCRYPT", description="Encrypted data")
+    return JSONResponse(content={"token": token})
 
-class EncryptResponse(BaseModel):
-    token: str
-
-class DecryptRequest(BaseModel):
-    token: str
-
-class DecryptResponse(BaseModel):
-    data: str
-
-class MalwareCheckRequest(BaseModel):
-    data: str
-
-class MalwareCheckResponse(BaseModel):
-    is_malicious: bool
-    reason: str
-
-@router.post("/encrypt", response_model=EncryptResponse)
-async def encrypt_endpoint(req: EncryptRequest):
-    token = encrypt_data(req.data)
-    return EncryptResponse(token=token)
-
-@router.post("/decrypt", response_model=DecryptResponse)
-async def decrypt_endpoint(req: DecryptRequest):
+@router.post("/decrypt")
+async def decrypt_endpoint(data: dict):
+    token = data.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="'token' field required")
     try:
-        data = decrypt_data(req.token)
+        plain_text = decrypt_data(token)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")
-    return DecryptResponse(data=data)
+        raise HTTPException(status_code=400, detail="Invalid token")
+    log_event(user_id=1, event_type="DECRYPT", description="Decrypted data")
+    return JSONResponse(content={"text": plain_text})
 
-@router.post("/malware-check", response_model=MalwareCheckResponse)
-async def malware_check_endpoint(req: MalwareCheckRequest):
-    is_malicious, reason = simple_malware_check(req.data)
-    return MalwareCheckResponse(is_malicious=is_malicious, reason=reason)
+@router.post("/scan")
+async def scan_endpoint(file: UploadFile = File(...)):
+    file_bytes = await file.read()
+    clean = scan_file(file_bytes)
+    log_event(user_id=1, event_type="SCAN", description=f"Scanned file {file.filename}")
+    return JSONResponse(content={"clean": clean})
+
+@router.get("/events")
+async def get_events():
+    return JSONResponse(content=EVENT_LOG)
